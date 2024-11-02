@@ -48,9 +48,15 @@ class GeminiViewSet (viewsets.ViewSet):
     def list(self, request:Request, chemical=None):
 
         if chemical is not None:
+            prompt = f"""
+                You are a pharmacist who wants to give the best answer to your customer.
+                Customer, interested in dermatological products and wants information about some chemicals.
+                The chemical is {chemical}.
+            """
+
             genai.configure(api_key=config('GEMINI_API_KEY'))
             model = genai.GenerativeModel("gemini-1.5-flash")
-            response = model.generate_content(f"Can you give me information in Turkish about a chemical which is named \'{chemical}\'?")
+            response = model.generate_content(prompt)
 
             return Response({'AI_Response':response_cleaner(response.text)}, status=status.HTTP_200_OK)
         else:
