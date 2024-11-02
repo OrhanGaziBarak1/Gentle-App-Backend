@@ -48,16 +48,15 @@ class GeminiViewSet (viewsets.ViewSet):
     def list(self, request:Request, chemical=None):
 
         if chemical is not None:
+
             prompt = f"""
-                You are a pharmacist who wants to give the best answer to your customer.
-                Customer, interested in dermatological products and wants information about some chemicals.
-                The chemical is {chemical}.
+                my app will turn the ingridients of a dermotologic product one by one as cards. I will give you 1 chemical to process. Then my app will show the chemicals as cards. can you turn the description of the chemical and make a list of its allergie risks and cancer risks of then detect which skin types are suitable this chemical give it as a list and all I need is answers like suitable/not suitable. is the chemical safe for roza, eczema, comedones disease and give short answers to me  {chemical}.
             """
 
             genai.configure(api_key=config('GEMINI_API_KEY'))
             model = genai.GenerativeModel("gemini-1.5-flash")
             response = model.generate_content(prompt)
 
-            return Response({'AI_Response':response_cleaner(response.text)}, status=status.HTTP_200_OK)
+            return Response({'AI_Response':response.text}, status=status.HTTP_200_OK)
         else:
             return Response({'Error':'Chemical not found. Please pass a chemical.'}, status=status.HTTP_404_NOT_FOUND)
