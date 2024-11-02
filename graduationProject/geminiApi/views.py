@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.request import Request
-
+from decouple import config
 import google.generativeai as genai
 
 import re
@@ -48,7 +48,7 @@ class GeminiViewSet (viewsets.ViewSet):
     def list(self, request:Request, chemical=None):
 
         if chemical is not None:
-            genai.configure(api_key="AIzaSyChYiXsRCyVl0muUhL8aA20icnZ67yEOYA")
+            genai.configure(api_key=config('GEMINI_API_KEY'))
             model = genai.GenerativeModel("gemini-1.5-flash")
             response = model.generate_content(f"Can you give me information in Turkish about a chemical which is named \'{chemical}\'?")
 
