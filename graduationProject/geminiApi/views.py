@@ -57,16 +57,7 @@ class GeminiViewSet (viewsets.ViewSet):
                 can you turn the description of the chemical and make a list of its allergie risks and 
                 cancer risks of then detect which skin types are suitable this chemical give it as a 
                 list and all I need is answers like suitable/not suitable. is the chemical safe for 
-                roza, eczema, comedones disease and give short answers to me  
-                
-                columnName: 'Titanium Dioxide',
-      columnDescription:
-          'Titanium Dioxide is a mineral used as a sunscreen agent. Nano TiO2 provides enhanced sun protection.',
-      columnCancer: 'low-mid',
-      columnAllergiesImmunotoxicity: 'low',
-      columnDevelopmentalReproductiveToxicity: 'low',
-      columnUseRestrictions: 'mid'
-                
+                roza, eczema, comedones disease and give short answers to me
                 {chemical}.
             """
 
