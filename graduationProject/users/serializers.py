@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
+from .models import SkinProblem, SkinType
 
 User = get_user_model()
 
@@ -28,3 +29,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
+
+class SkinProblemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SkinProblem
+        fields = '__all__'
+
+class SkinTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SkinType
+        fields = '__all__'

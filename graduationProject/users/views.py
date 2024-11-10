@@ -1,17 +1,17 @@
-# views.py
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
-from .serializers import UserRegistrationSerializer, UserLoginSerializer
+from .models import SkinProblem, SkinType
+from .serializers import UserRegistrationSerializer, UserLoginSerializer, SkinProblemSerializer, SkinTypeSerializer
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 class UserViewSet(viewsets.ViewSet):
-    permission_classes = [AllowAny]  # Bu sınıf genel izinleri belirler.
+    permission_classes = [AllowAny]
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def register(self, request):
@@ -34,9 +34,18 @@ class UserViewSet(viewsets.ViewSet):
             new_token = Token.objects.create(user=user)
             return Response({"token": new_token.key}, status=status.HTTP_200_OK)
         else:
-            return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def logout(self, request):
         request.user.auth_token.delete()
         return Response(status=status.HTTP_200_OK)
+
+class SkinProblemViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = SkinProblemSerializer
+    queryset = SkinProblem.objects.all()
+
+class SkinTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = SkinTypeSerializer
+    queryset = SkinType.objects.all()
+
