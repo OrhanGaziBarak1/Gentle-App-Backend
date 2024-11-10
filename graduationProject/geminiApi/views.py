@@ -52,7 +52,22 @@ class GeminiViewSet (viewsets.ViewSet):
         if chemical is not None:
 
             prompt = f"""
-                my app will turn the ingridients of a dermotologic product one by one as cards. I will give you 1 chemical to process. Then my app will show the chemicals as cards. can you turn the description of the chemical and make a list of its allergie risks and cancer risks of then detect which skin types are suitable this chemical give it as a list and all I need is answers like suitable/not suitable. is the chemical safe for roza, eczema, comedones disease and give short answers to me  {chemical}.
+                my app will turn the ingridients of a dermotologic product one by one as cards. 
+                I will give you 1 chemical to process. Then my app will show the chemicals as cards. 
+                can you turn the description of the chemical and make a list of its allergie risks and 
+                cancer risks of then detect which skin types are suitable this chemical give it as a 
+                list and all I need is answers like suitable/not suitable. is the chemical safe for 
+                roza, eczema, comedones disease and give short answers to me  
+                
+                columnName: 'Titanium Dioxide',
+      columnDescription:
+          'Titanium Dioxide is a mineral used as a sunscreen agent. Nano TiO2 provides enhanced sun protection.',
+      columnCancer: 'low-mid',
+      columnAllergiesImmunotoxicity: 'low',
+      columnDevelopmentalReproductiveToxicity: 'low',
+      columnUseRestrictions: 'mid'
+                
+                {chemical}.
             """
 
             genai.configure(api_key=config('GEMINI_API_KEY'))
