@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.request import Request
 from decouple import config
@@ -44,7 +45,8 @@ def response_cleaner(text):
     return text.strip()
 
 class GeminiViewSet (viewsets.ViewSet):
-
+    permission_classes = [IsAuthenticated]
+    
     def list(self, request:Request, chemical=None):
 
         if chemical is not None:
