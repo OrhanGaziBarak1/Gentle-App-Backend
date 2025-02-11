@@ -39,6 +39,8 @@ class User(AbstractUser):
     age = models.IntegerField(null=True, blank=True)
     skin_problem = models.ForeignKey(SkinProblem, on_delete=models.SET_NULL, null=True, blank=True)
     skin_type = models.ForeignKey(SkinType, on_delete=models.SET_NULL, null=True, blank=True)
+    password_reset_code = models.CharField(max_length=6, blank=True, null=True)
+    reset_code_created_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"""{self.username} - {self.first_name} {self.last_name} -
