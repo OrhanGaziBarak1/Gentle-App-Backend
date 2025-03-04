@@ -2,7 +2,6 @@ from django.core.validators import validate_email
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework.authtoken.models import Token
-from .models import SkinProblem, SkinType
 
 User = get_user_model()
 
@@ -52,15 +51,6 @@ class UserLoginSerializer(serializers.Serializer):
 class PasswordResetConfirmSerializer(serializers.Serializer):
     reset_code = serializers.CharField()
     new_password = serializers.CharField(write_only=True)
-class SkinProblemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SkinProblem
-        fields = '__all__'
-
-class SkinTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SkinType
-        fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
