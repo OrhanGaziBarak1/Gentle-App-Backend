@@ -4,10 +4,16 @@ from django.contrib.auth.models import AbstractUser
 class SkinProblem(models.Model):
 
     SKIN_PROBLEMS = [
-        ('problem_1','Cilt Problemi 1'),
-        ('problem_2','Cilt Problemi 2'),
-        ('problem_3','Cilt Problemi 3'),
-        ('problem_4','Cilt Problemi 4'),
+        ('acne_prone','Acne Prone'),
+        ('sensitive','Sensitive'),
+        ('aging','Aging'),
+        ('dry','Dry'),
+        ('oily','Oily'),
+        ('normal','Normal'),
+        ('combination','Combination'),
+        ('rosacea','Rosacea'),
+        ('eczema','Eczema'),
+        ('hyperpigmentation','Hyperpigmentation'),
     ]
 
     skin_problem_name = models.CharField(max_length=50,
@@ -21,10 +27,11 @@ class SkinProblem(models.Model):
 class SkinType(models.Model):
 
     SKIN_TYPES = [
-        ('type_1','Cilt Tipi 1'),
-        ('type_2','Cilt Tipi 2'),
-        ('type_3','Cilt Tipi 3'),
-        ('type_4','Cilt Tipi 4'),
+        ('oily','Oily'),
+        ('dry','Dry'),
+        ('combination','Combination'),
+        ('normal','Normal'),
+        ('sensitive','Sensitive'),
     ]
 
     skin_type_name = models.CharField(max_length=50,
