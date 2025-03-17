@@ -11,7 +11,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'password', 'email', 'first_name', 'last_name', 'age', 'skin_type', 'skin_problem')
+        fields = ('username', 'password', 'email', 'full_name', 'age', 'skin_type', 'skin_problem')
 
     def validate_email(self, value):
         try:
@@ -33,8 +33,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user = User(
             username=validated_data['username'],
             email=validated_data['email'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
+            full_name = validated_data['full_name'],
             age=validated_data.get('age'),
             skin_type=validated_data.get('skin_type'),
             skin_problem=validated_data.get('skin_problem')
@@ -55,4 +54,4 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
-        fields=["username", "email", "first_name", "last_name", "skin_type", "skin_problem", "age"]
+        fields=["username", "email", 'full_name', "skin_type", "skin_problem", "age"]
