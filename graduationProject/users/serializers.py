@@ -55,3 +55,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
         fields=["username", "email", 'full_name', "skin_type", "skin_problem", "age"]
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=User
+        fields=["username", 'full_name', "skin_type", "skin_problem", "age"]
