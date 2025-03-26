@@ -20,7 +20,7 @@ class GeminiViewSet (viewsets.ViewSet):
                 Then, you will return to me your analysis with this result format.
                 Remember that you will return to me only the result format. Dont say anything else.
                 You dont write our variables like ingredient name, cancer possibility, allergie possibility.
-                You write your result with markdown format.
+                You write your result with json array format.
 
                 Result format:
                 <Ingredient Name>:
