@@ -39,7 +39,7 @@ class GeminiViewSet (viewsets.ViewSet):
 
                 -  User Skin Type(s): {user.skin_type}
                 -  User Skin Problem(s): {user.skin_problem}
-                -  User Age: {user.age}
+                -  User Birth Year: {user.birth_year}
 
                 OCR Text:  
                 {data}

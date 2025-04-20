@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
-from .serializers import UserRegistrationSerializer,UserLoginSerializer, UserSerializer, PasswordResetConfirmSerializer, UserUpdateSerializer
+from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSerializer, PasswordResetConfirmSerializer, UserUpdateSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
 from .models import User
@@ -48,23 +48,33 @@ class UserViewSet(viewsets.ViewSet):
         email = request.data.get("email")
         try:
             user = User.objects.get(email=email)
-        except:
-            return Response({"error": "User with this email not found"}, status=404)
+        except User.DoesNotExist:
+            return Response({
+                "error": "User with this email not found"
+            }, status=status.HTTP_404_NOT_FOUND)
 
         reset_code = get_random_string(length=6, allowed_chars="0123456789")
 
-        send_mail(
-            "Your password reset code",
-            f"Your password reset code is: {reset_code}",
-            settings.EMAIL_HOST_USER,
-            [user.email],
-        )
+        try:
+            send_mail(
+                "Your password reset code",
+                f"Your password reset code is: {reset_code}",
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            return Response({
+                "error": "Failed to send reset code email"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         user.password_reset_code = reset_code
         user.reset_code_created_at = timezone.now()
         user.save()
 
-        return Response({"message": "A password reset code has been sent to your email.", "email": "email"}, status=200)
+        return Response({
+            "message": "A password reset code has been sent to your email"
+        }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def password_reset_confirm(self, request):
@@ -77,19 +87,27 @@ class UserViewSet(viewsets.ViewSet):
         try:
             user = User.objects.get(password_reset_code=reset_code)
         except User.DoesNotExist:
-            return Response({"error": "Invalid reset code."}, status=400)
+            return Response({
+                "error": "Invalid reset code"
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         if timezone.now() - user.reset_code_created_at > timedelta(minutes=10):
-            return Response({"error": "Reset code has been expired."}, status=400)
+            return Response({
+                "error": "Reset code has expired"
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         if check_password(new_password, user.password):
-            return Response({"error": "New password cannot be the same as the old password."}, status=400)
+            return Response({
+                "error": "New password cannot be the same as the old password"
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         user.set_password(new_password)
         user.password_reset_code=None
         user.save()
 
-        return Response({"message": "Your password has been successfully reset."}, status=200)
+        return Response({
+            "message": "Your password has been successfully reset"
+        }, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def update_user(self, request):
