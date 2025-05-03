@@ -65,16 +65,14 @@ class UserViewSet(viewsets.ViewSet):
             )
         except Exception as e:
             return Response({
-                "error": "Failed to send reset code email"
+                "error": f"Failed to send reset code email. Error is: {e}"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         user.password_reset_code = reset_code
         user.reset_code_created_at = timezone.now()
         user.save()
 
-        return Response({
-            "message": "A password reset code has been sent to your email"
-        }, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def password_reset_confirm(self, request):
