@@ -36,7 +36,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             full_name=validated_data['full_name'],
             birth_year=validated_data.get('birth_year'),
             skin_type=validated_data.get('skin_type'),
-            skin_problem=validated_data.get('skin_problem')
+            skin_problem=validated_data.get('skin_problem'),
+            is_active=False  # Set is_active to False for new registrations
         )
         user.set_password(validated_data['password'])
         user.save()

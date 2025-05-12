@@ -33,6 +33,16 @@ class UserViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data['username']
         password = serializer.validated_data['password']
+
+        try:
+            user = User.objects.get(username=username)
+            if not user.is_active:
+                return Response({
+                    "error": "Your account is not active. Please check your email for activation instructions."
+                }, status=status.HTTP_403_FORBIDDEN)
+        except User.DoesNotExist:
+            return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+
         user = authenticate(username=username, password=password)
 
         if user:
@@ -73,6 +83,31 @@ class UserViewSet(viewsets.ViewSet):
         user.save()
 
         return Response(status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def verificate_email(self, request):
+        code = request.data.get("code")
+
+        try:
+            user = User.objects.get(password_reset_code=code)
+        except User.DoesNotExist:
+            return Response({
+                "error": "Invalid reset code"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if timezone.now() - user.reset_code_created_at > timedelta(seconds=90):
+            user.password_reset_code = None
+            user.reset_code_created_at = None
+            user.save()
+            return Response({
+                "error": "Reset code has expired"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        user.is_active = True
+        user.password_reset_code = None
+        user.save()
+        
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def password_reset_confirm(self, request):
@@ -89,7 +124,10 @@ class UserViewSet(viewsets.ViewSet):
                 "error": "Invalid reset code"
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        if timezone.now() - user.reset_code_created_at > timedelta(minutes=10):
+        if timezone.now() - user.reset_code_created_at > timedelta(seconds=90):
+            user.password_reset_code = None
+            user.reset_code_created_at = None
+            user.save()
             return Response({
                 "error": "Reset code has expired"
             }, status=status.HTTP_400_BAD_REQUEST)
