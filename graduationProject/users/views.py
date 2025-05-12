@@ -3,13 +3,13 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from rest_framework import viewsets, status, generics
+from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSerializer, PasswordResetConfirmSerializer, UserUpdateSerializer
+from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserSerializer, NewPasswordSerializer, EmailSerializer, PasswordResetCodeSerializer, UserUpdateSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
 from .models import User
@@ -37,9 +37,7 @@ class UserViewSet(viewsets.ViewSet):
         try:
             user = User.objects.get(username=username)
             if not user.is_active:
-                return Response({
-                    "error": "Your account is not active. Please check your email for activation instructions."
-                }, status=status.HTTP_403_FORBIDDEN)
+                return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
             return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -55,7 +53,10 @@ class UserViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def password_reset_request(self,request):
-        email = request.data.get("email")
+        serializer = EmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
@@ -86,15 +87,31 @@ class UserViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def verificate_email(self, request):
-        code = request.data.get("code")
+        email_serializer = EmailSerializer(data={"email": request.data.get("email")})
+        email_serializer.is_valid(raise_exception=True)
+        email = email_serializer.validated_data['email']
+
+        code_serializer = PasswordResetCodeSerializer(data={"code": request.data.get("code")})
+        code_serializer.is_valid(raise_exception=True)
+        code = code_serializer.validated_data['code']
 
         try:
-            user = User.objects.get(password_reset_code=code)
+            user = User.objects.get(email=email)
         except User.DoesNotExist:
             return Response({
-                "error": "Invalid reset code"
+                "error": "User does not exist."
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if not user.password_reset_code or not user.reset_code_created_at:
+            return Response({
+                "error": "No valid reset code found for this user."
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
+        if user.password_reset_code != code:
+            return Response({
+                "error": "Invalid reset code."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         if timezone.now() - user.reset_code_created_at > timedelta(seconds=90):
             user.password_reset_code = None
             user.reset_code_created_at = None
@@ -102,26 +119,43 @@ class UserViewSet(viewsets.ViewSet):
             return Response({
                 "error": "Reset code has expired"
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         user.is_active = True
         user.password_reset_code = None
         user.save()
-        
+
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def password_reset_confirm(self, request):
-        serializer = PasswordResetConfirmSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        code_serializer = PasswordResetCodeSerializer(data={"code": request.data.get("code")})
+        code_serializer.is_valid(raise_exception=True)
 
-        reset_code = serializer.validated_data['reset_code']
-        new_password = serializer.validated_data['new_password']
+        new_password_serializer = NewPasswordSerializer(data={"new_password": request.data.get("new_password")})
+        new_password_serializer.is_valid(raise_exception=True)
+
+        email_serializer = EmailSerializer(data={"email": request.data.get("email")})
+        email_serializer.is_valid(raise_exception=True)
+
+        new_password = new_password_serializer.validated_data['new_password']
+        code = code_serializer.validated_data['code']
+        email = email_serializer.validated_data['email']
 
         try:
-            user = User.objects.get(password_reset_code=reset_code)
+            user = User.objects.get(email=email)
         except User.DoesNotExist:
             return Response({
-                "error": "Invalid reset code"
+                "error": "User with this email not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if not user.password_reset_code or not user.reset_code_created_at:
+            return Response({
+                "error": "No valid reset code found for this user."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if user.password_reset_code != code:
+            return Response({
+                "error": "Invalid reset code."
             }, status=status.HTTP_400_BAD_REQUEST)
 
         if timezone.now() - user.reset_code_created_at > timedelta(seconds=90):
@@ -139,6 +173,7 @@ class UserViewSet(viewsets.ViewSet):
 
         user.set_password(new_password)
         user.password_reset_code=None
+        user.reset_code_created_at=None
         user.save()
 
         return Response({

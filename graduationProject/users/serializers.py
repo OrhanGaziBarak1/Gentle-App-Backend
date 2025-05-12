@@ -1,6 +1,6 @@
 from django.core.validators import validate_email
 from rest_framework import serializers
-from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 
 User = get_user_model()
@@ -48,9 +48,19 @@ class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
-class PasswordResetConfirmSerializer(serializers.Serializer):
-    reset_code = serializers.CharField()
+class NewPasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True)
+
+class EmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+class PasswordResetCodeSerializer(serializers.Serializer):
+    code = serializers.CharField()
+
+    def validate_code(self, value):
+        if not (value.isdigit() and len(value) == 6):
+            raise serializers.ValidationError("Code must be a 6-digit number.")
+        return value
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
