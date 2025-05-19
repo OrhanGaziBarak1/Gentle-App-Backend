@@ -128,8 +128,6 @@ class UserViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def password_reset_confirm(self, request):
-        code_serializer = PasswordResetCodeSerializer(data={"code": request.data.get("code")})
-        code_serializer.is_valid(raise_exception=True)
 
         new_password_serializer = NewPasswordSerializer(data={"new_password": request.data.get("new_password")})
         new_password_serializer.is_valid(raise_exception=True)
@@ -138,7 +136,6 @@ class UserViewSet(viewsets.ViewSet):
         email_serializer.is_valid(raise_exception=True)
 
         new_password = new_password_serializer.validated_data['new_password']
-        code = code_serializer.validated_data['code']
         email = email_serializer.validated_data['email']
 
         try:
@@ -148,32 +145,12 @@ class UserViewSet(viewsets.ViewSet):
                 "error": "User with this email not found"
             }, status=status.HTTP_404_NOT_FOUND)
 
-        if not user.password_reset_code or not user.reset_code_created_at:
-            return Response({
-                "error": "No valid reset code found for this user."
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        if user.password_reset_code != code:
-            return Response({
-                "error": "Invalid reset code."
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        if timezone.now() - user.reset_code_created_at > timedelta(seconds=90):
-            user.password_reset_code = None
-            user.reset_code_created_at = None
-            user.save()
-            return Response({
-                "error": "Reset code has expired"
-            }, status=status.HTTP_400_BAD_REQUEST)
-
         if check_password(new_password, user.password):
             return Response({
                 "error": "New password cannot be the same as the old password"
             }, status=status.HTTP_400_BAD_REQUEST)
 
         user.set_password(new_password)
-        user.password_reset_code=None
-        user.reset_code_created_at=None
         user.save()
 
         return Response({
